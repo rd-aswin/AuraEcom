@@ -13,9 +13,12 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const redirectPath = searchParams?.get('redirect') || '/';
 
-  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup' | 'forgot' | 'reset'>(
+    searchParams?.get('reset') === 'true' ? 'reset' : 'signin'
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -40,7 +43,7 @@ function LoginContent() {
         
         router.push(redirectPath);
         router.refresh();
-      } else {
+      } else if (activeTab === 'signup') {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -68,6 +71,33 @@ function LoginContent() {
             router.refresh();
           }, 1500);
         }
+      } else if (activeTab === 'forgot') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/api/auth/callback?next=/login?reset=true`,
+        });
+
+        if (error) throw error;
+
+        setSuccessMsg('Password reset link sent! Please check your email.');
+        setEmail('');
+      } else if (activeTab === 'reset') {
+        if (password !== confirmPassword) {
+          throw new Error('Passwords do not match.');
+        }
+
+        const { error } = await supabase.auth.updateUser({
+          password: password,
+        });
+
+        if (error) throw error;
+
+        setSuccessMsg('Password reset successfully! Redirecting...');
+        setPassword('');
+        setConfirmPassword('');
+        setTimeout(() => {
+          router.push(redirectPath);
+          router.refresh();
+        }, 1500);
       }
     } catch (err: any) {
       console.error('Authentication error:', err);
@@ -92,30 +122,43 @@ function LoginContent() {
           </div>
 
           {/* Login/Signup Tabs */}
-          <div className={styles.tabs}>
-            <button
-              type="button"
-              className={`${styles.tab} ${activeTab === 'signin' ? styles.activeTab : ''}`}
-              onClick={() => {
-                setActiveTab('signin');
-                setErrorMsg(null);
-                setSuccessMsg(null);
-              }}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              className={`${styles.tab} ${activeTab === 'signup' ? styles.activeTab : ''}`}
-              onClick={() => {
-                setActiveTab('signup');
-                setErrorMsg(null);
-                setSuccessMsg(null);
-              }}
-            >
-              Create Account
-            </button>
-          </div>
+          {(activeTab === 'signin' || activeTab === 'signup') ? (
+            <div className={styles.tabs}>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeTab === 'signin' ? styles.activeTab : ''}`}
+                onClick={() => {
+                  setActiveTab('signin');
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                className={`${styles.tab} ${activeTab === 'signup' ? styles.activeTab : ''}`}
+                onClick={() => {
+                  setActiveTab('signup');
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                }}
+              >
+                Create Account
+              </button>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--primary)' }}>
+                {activeTab === 'forgot' ? 'Reset Password' : 'Create New Password'}
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                {activeTab === 'forgot' 
+                  ? 'We will send a secure recovery link to your email address.' 
+                  : 'Enter your new secure password below.'}
+              </p>
+            </div>
+          )}
 
           {/* Feedback boxes */}
           {errorMsg && (
@@ -149,39 +192,93 @@ function LoginContent() {
               </div>
             )}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="email" className={styles.label}>Email Address</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className={styles.input}
-                required
-              />
-            </div>
+            {activeTab !== 'reset' && (
+              <div className={styles.formGroup}>
+                <label htmlFor="email" className={styles.label}>Email Address</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={styles.input}
+                  required
+                />
+              </div>
+            )}
 
-            <div className={styles.formGroup}>
-              <label htmlFor="password" className={styles.label}>Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className={styles.input}
-                required
-              />
-            </div>
+            {activeTab !== 'forgot' && (
+              <div className={styles.formGroup}>
+                <label htmlFor="password" className={styles.label}>
+                  {activeTab === 'reset' ? 'New Password' : 'Password'}
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={styles.input}
+                  required
+                />
+              </div>
+            )}
+
+            {activeTab === 'signin' && (
+              <button
+                type="button"
+                className={styles.forgotLink}
+                onClick={() => {
+                  setActiveTab('forgot');
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                }}
+              >
+                Forgot Password?
+              </button>
+            )}
+
+            {activeTab === 'reset' && (
+              <div className={styles.formGroup}>
+                <label htmlFor="confirmPassword" className={styles.label}>Confirm New Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className={styles.input}
+                  required
+                />
+              </div>
+            )}
 
             <button
               type="submit"
               disabled={loading}
               className={`btn btn-primary ${styles.submitBtn}`}
             >
-              {loading ? 'Processing...' : activeTab === 'signin' ? 'Sign In' : 'Register'}
+              {loading ? 'Processing...' : 
+               activeTab === 'signin' ? 'Sign In' : 
+               activeTab === 'signup' ? 'Register' : 
+               activeTab === 'forgot' ? 'Send Reset Link' : 'Update Password'}
             </button>
+
+            {activeTab === 'forgot' && (
+              <div className={styles.backLinkContainer}>
+                <button
+                  type="button"
+                  className={styles.backLink}
+                  onClick={() => {
+                    setActiveTab('signin');
+                    setErrorMsg(null);
+                    setSuccessMsg(null);
+                  }}
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </main>
