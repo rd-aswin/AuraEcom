@@ -6,7 +6,7 @@
 
 ## 🔗 Deployed Showcase
 
-* **Live Demo:** [aura-ecom.vercel.app](https://aura-ecom.vercel.app) *(Replace with your live deployment link)*
+* **Live Demo:** [aura-ecom-ruby.vercel.app](https://aura-ecom-ruby.vercel.app/)
 
 ### Visual Tour
 | Storefront Catalog | Product Details & Reviews | Custom Order Timeline Tracker |
