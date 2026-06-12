@@ -2,13 +2,31 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Leaf, ArrowRight } from 'lucide-react';
 import styles from './Footer.module.css';
 
 export default function Footer() {
+  const pathname = usePathname();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     alert('Thank you for subscribing to Aura updates!');
+  };
+
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleCareersClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    alert('Thank you for your interest in Aura! We currently have no open positions, but please check back later.');
   };
 
   return (
@@ -27,20 +45,20 @@ export default function Footer() {
         <div>
           <h3 className={styles.title}>Shop</h3>
           <ul className={styles.list}>
-            <li><Link href="/?category=skincare" className={styles.link}>Skincare</Link></li>
-            <li><Link href="/?category=teas" className={styles.link}>Botanical Teas</Link></li>
-            <li><Link href="/?category=wellness" className={styles.link}>Wellness</Link></li>
-            <li><Link href="/?category=new" className={styles.link}>New Arrivals</Link></li>
+            <li><Link href="/?category=Skincare" className={styles.link}>Skincare</Link></li>
+            <li><Link href="/?category=Botanical%20Teas" className={styles.link}>Botanical Teas</Link></li>
+            <li><Link href="/?category=Wellness" className={styles.link}>Wellness</Link></li>
+            <li><Link href="/?category=All" className={styles.link}>New Arrivals</Link></li>
           </ul>
         </div>
 
         <div>
           <h3 className={styles.title}>Aura</h3>
           <ul className={styles.list}>
-            <li><Link href="/#about" className={styles.link}>Our Story</Link></li>
-            <li><Link href="/#philosophy" className={styles.link}>Philosophy</Link></li>
-            <li><Link href="/#sustainability" className={styles.link}>Sustainability</Link></li>
-            <li><Link href="/#careers" className={styles.link}>Careers</Link></li>
+            <li><Link href="/#story" className={styles.link} onClick={(e) => handleScroll(e, 'story')}>Our Story</Link></li>
+            <li><Link href="/#philosophy" className={styles.link} onClick={(e) => handleScroll(e, 'philosophy')}>Philosophy</Link></li>
+            <li><Link href="/#sustainability" className={styles.link} onClick={(e) => handleScroll(e, 'sustainability')}>Sustainability</Link></li>
+            <li><Link href="/#careers" className={styles.link} onClick={handleCareersClick}>Careers</Link></li>
           </ul>
         </div>
 
@@ -70,3 +88,4 @@ export default function Footer() {
     </footer>
   );
 }
+

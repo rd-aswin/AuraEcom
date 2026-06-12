@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Leaf, ShieldCheck, Heart } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -67,10 +68,14 @@ const MOCK_PRODUCTS: Product[] = [
   }
 ];
 
-export default function Home() {
+const DEFAULT_CATEGORIES = ['Skincare', 'Botanical Teas', 'Wellness'];
+
+function HomeContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const catParam = searchParams.get('category');
 
   useEffect(() => {
     async function fetchProducts() {
@@ -100,10 +105,30 @@ export default function Home() {
     fetchProducts();
   }, []);
 
-  const defaultCats = ['Skincare', 'Botanical Teas', 'Wellness'];
-  const customCats = Array.from(new Set(products.map(p => p.category).filter((cat): cat is string => !!cat)))
-    .filter(cat => !defaultCats.includes(cat));
-  const categories = ['All', ...defaultCats, ...customCats];
+  const customCats = useMemo(() => {
+    return Array.from(new Set(products.map(p => p.category).filter((cat): cat is string => !!cat)))
+      .filter(cat => !DEFAULT_CATEGORIES.includes(cat));
+  }, [products]);
+
+  const categories = useMemo(() => {
+    return ['All', ...DEFAULT_CATEGORIES, ...customCats];
+  }, [customCats]);
+
+  const activeCategory = useMemo(() => {
+    if (catParam) {
+      const match = categories.find(c => c.toLowerCase() === catParam.toLowerCase());
+      return match || 'All';
+    }
+    return 'All';
+  }, [catParam, categories]);
+
+  const handleCategoryClick = (cat: string) => {
+    if (cat === 'All') {
+      router.push('/', { scroll: false });
+    } else {
+      router.push(`/?category=${encodeURIComponent(cat)}`, { scroll: false });
+    }
+  };
 
   const filteredProducts = activeCategory === 'All'
     ? products
@@ -158,7 +183,7 @@ export default function Home() {
                   type="button"
                   className={`btn ${activeCategory === cat ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ padding: '8px 20px', borderRadius: '24px', fontSize: '0.88rem' }}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => handleCategoryClick(cat)}
                 >
                   {cat}
                 </button>
@@ -210,7 +235,7 @@ export default function Home() {
               </div>
 
               {/* Philosophy Grid */}
-              <div className={styles.philosophyGrid}>
+              <div id="philosophy" className={styles.philosophyGrid}>
                 <div className={styles.philosophyCard}>
                   <Leaf className={styles.philosophyIcon} size={28} />
                   <h3 className={styles.philosophyTitle}>100% Organic</h3>
@@ -227,7 +252,7 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className={styles.philosophyCard}>
+                <div id="sustainability" className={styles.philosophyCard}>
                   <Heart className={styles.philosophyIcon} size={28} />
                   <h3 className={styles.philosophyTitle}>Sustainable</h3>
                   <p className={styles.philosophyText}>
@@ -242,5 +267,17 @@ export default function Home() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5EFEB', color: '#1E352C' }}>
+        <p style={{ fontSize: '1.2rem', fontFamily: 'serif' }}>Loading Aura Storefront...</p>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
