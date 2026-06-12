@@ -53,6 +53,12 @@ export default function OrderTrackingPage() {
 
     async function fetchOrderDetails() {
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase
           .from('orders')
           .select(`
@@ -74,6 +80,7 @@ export default function OrderTrackingPage() {
             )
           `)
           .eq('id', orderId)
+          .eq('user_id', user.id)
           .single();
 
         if (error) throw error;

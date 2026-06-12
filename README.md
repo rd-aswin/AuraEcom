@@ -11,7 +11,7 @@
 ### Visual Tour
 | Storefront Catalog | Product Details & Reviews | Custom Order Timeline Tracker |
 |:---:|:---:|:---:|
-| ![Storefront Catalog](https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=400) | ![Product Details](https://images.unsplash.com/photo-1567894192231-d22d9c1349db?q=80&w=400) | ![Fulfillment Timeline](https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=400) |
+| ![Storefront Catalog](https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=400) | ![Product Details](https://images.unsplash.com/photo-1616683693504-3ea7e9ad6fec?q=80&w=600) | ![Fulfillment Timeline](https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=400) |
 | *Curated Warm Organic storefront with instant category filters.* | *Comprehensive product layouts with quantity and stock control.* | *Graphical timeline indicating parcel stages (Placed → Shipped → Delivered).* |
 
 ---
