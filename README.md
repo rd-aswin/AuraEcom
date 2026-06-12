@@ -110,6 +110,22 @@ graph TD
 
 ---
 
+## 🚀 Free Hosting & Production Tips
+
+To deploy this project completely free without services going to sleep or getting flagged:
+
+### 1. Database Keep-Alive (Supabase)
+Supabase free tier databases pause automatically after **7 days of inactivity**. To keep it active indefinitely:
+* Deploy the frontend to Vercel (which runs on serverless functions and never goes to sleep).
+* Set up a free uptime monitor (e.g., [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org)) to ping your website once every 24 hours. This queries your product catalog and keeps the database permanently active.
+
+### 2. Transactional Email IP Whitelisting (Brevo)
+Since Vercel uses dynamic IP addresses, Brevo's default *"Blocking of unknown IP addresses"* feature will block email delivery and prompt for IP approval.
+* Log into the Brevo Dashboard → **Security** → **Authorized IPs**.
+* Deactivate **Blocking of unknown IP addresses**. (This is fully secure as your API key remains a cryptographically secure, server-side secret).
+
+---
+
 ## 🔮 Future Roadmap
 
 * **Live Payments Integration**: Complete Razorpay / Stripe credentials setup for live credit card and UPI payments.
