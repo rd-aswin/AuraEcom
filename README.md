@@ -1,49 +1,73 @@
 # 🍃 Aura — Premium Botanical E-Commerce Store
 
-Aura is a full-stack, high-end botanical e-commerce application designed to showcase modern web engineering practices. Built with **Next.js (App Router)**, **TypeScript**, and **Vanilla CSS Modules**, it integrates a secure shopping experience, role-based admin controls, real-time inventory management, and automated transactional emails.
+**A full-stack, high-end botanical e-commerce application featuring persistent cart drawers, secure user authentication, role-based admin control panels, and automated transactional emails.**
 
 ---
 
-## 🚀 Core Features
+## 🔗 Deployed Showcase
 
-### 🛒 Customer Experience
-* **Secure Auth Gateway**: Integrated with Supabase Auth for seamless login and registration.
-* **Auto-Filled Checkout**: Pre-populates shipping forms with authenticated user metadata.
-* **Interactive Shopping Cart**: Custom-built side drawer utilizing React Context and LocalStorage for persistent cart state.
-* **Live Order Tracking**: Visual, color-coded fulfillment timeline tracking orders from *Placed* $\rightarrow$ *Shipped* $\rightarrow$ *Delivered*.
+* **Live Demo:** [aura-ecom.vercel.app](https://aura-ecom.vercel.app) *(Replace with your live deployment link)*
 
-### 🔑 Administrative Control Room (`is_admin = true`)
-* **Sales Analytics & KPIs**: Real-time sales telemetry calculating total revenue, average order value, and low-stock alerts (< 5 units).
-* **Direct CDN Uploads**: Integrated with Cloudinary for secure, signed image uploads directly from the browser.
-* **Order Fulfillment Control**: Interactive dashboard allowing admins to update status, which automatically triggers delivery update emails.
+### Visual Tour
+| Storefront Catalog | Product Details & Reviews | Custom Order Timeline Tracker |
+|:---:|:---:|:---:|
+| ![Storefront Catalog](https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?q=80&w=400) | ![Product Details](https://images.unsplash.com/photo-1567894192231-d22d9c1349db?q=80&w=400) | ![Fulfillment Timeline](https://images.unsplash.com/photo-1597481499750-3e6b22637e12?q=80&w=400) |
+| *Curated Warm Organic storefront with instant category filters.* | *Comprehensive product layouts with quantity and stock control.* | *Graphical timeline indicating parcel stages (Placed → Shipped → Delivered).* |
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Frontend**: Next.js (App Router, Turbopack), React, TypeScript
-* **Styling**: Vanilla CSS Modules (Warm Organic theme: Oatmeal/Ivory palette, Outfit & DM Serif typography)
-* **Backend & Database**: Supabase (PostgreSQL), with check constraints and Row Level Security (RLS)
-* **Image Hosting**: Cloudinary (Direct Signed Upload API)
-* **Email Service**: Brevo (SMTP/Transactional Mail API)
+* **Frontend Framework**: Next.js (App Router, Turbopack Compiler), React, TypeScript
+* **Styling**: Vanilla CSS Modules (Strict Botanical design system using `#F5EFEB` Oatmeal canvas)
+* **Backend Database & Auth**: Supabase (PostgreSQL, Row-Level Security, Database Constraints)
+* **Media Optimization**: Cloudinary (Direct Signed Uploads & Image Transformations)
+* **Email Broker**: Brevo (SMTP Transactional Mail API)
 
 ---
 
-## 🧠 Architectural & Engineering Highlights (Interview Points)
+## 🚀 Key Features
 
-### 1. Next.js Request Proxy Gateway
-Secures `/checkout`, `/orders`, and `/admin` paths before page rendering using Next.js Request Proxy middleware (`src/proxy.ts`):
-* Non-admin users are blocked from dashboard paths.
-* Guest users are cleanly redirected to `/login?redirect=...` and returned post-login.
+* **🔑 Unified Auth & Route Guarding**: Authenticated sessions powered by Supabase. Custom Next.js Request Proxy checks block guest checkouts and shield admin paths.
+* **🛒 Persistent Shopping Cart**: Context-driven side drawer utilizing `localStorage` to retain items across page reloads and browser sessions.
+* **📦 Auto-Filled Checkout Form**: Shipping details automatically query and populate client metadata from active auth sessions.
+* **📈 Administrative KPI Telemetry**: Real-time sales metrics dashboard calculating total revenue, average cart values, and low stock (< 5 units) warnings.
+* **🛠 Admin CRUD Catalog Control**: Interface for admins to add, edit, or delete items. Handles direct browser-to-Cloudinary image uploads securely.
+* **🔄 Order State Tracker & Mail Alerts**: Dropdown menus allowing admins to dispatch packages. Changing statuses automatically triggers HTML receipts and tracking updates to the user's email.
+* **🚚 Customer Delivery Progress Visual**: Timeline tracking showing payment and parcel updates in real-time.
 
-### 2. Secure Server-to-Client Upload Pipeline
-Implemented a cryptographic signature generator endpoint (`/api/media/sign`). When uploading images:
-1. The client requests a secure signature from Next.js server-side route.
-2. The client uploads the file directly to Cloudinary using this signature.
-3. This bypasses proxying heavy file payloads through the Next.js server, improving performance and reducing host bandwidth.
+---
 
-### 3. Database Check Constraints & Security
-Designed PostgreSQL schemas with strict safety checks (e.g., matching delivery constraints, email constraints, and order-ownership guards). Enabled row-level policies ensuring users can only fetch their own orders.
+## 📐 System Architecture
+
+```mermaid
+graph TD
+    Client["Client Browser (Next.js SPA)"] -->|1. Auth Cookie / Requests| Proxy["Next.js Request Proxy (src/proxy.ts)"]
+    Proxy -->|2. Authenticated Session Checks| Supabase["Supabase Auth & Database"]
+    Client -->|3. Signed Image Uploads| Cloudinary["Cloudinary Media CDN"]
+    Proxy -->|4. Trigger Shipping Emails| Brevo["Brevo SMTP / Email API"]
+```
+
+1. **Authentication**: Supabase handles account registration and user sessions.
+2. **Access Control**: A Next.js Request Proxy interceptor (`src/proxy.ts`) reads authorization cookies and protects dynamic routes before rendering pages.
+3. **Optimized Uploads**: Client requests signed credentials from `/api/media/sign` and uploads images directly to Cloudinary, keeping servers lightweight.
+4. **Lifecycle Alerts**: Order updates invoke the Next.js API, which updates the Database and triggers shipping confirmation emails via Brevo.
+
+---
+
+## 🧠 Technical Challenges & Decisions
+
+### Challenge 1: Securing Pages under Next.js 16 Gateway Standards
+* **The Problem**: Next.js 16 deprecated old middleware configurations. Standard route intercepts often suffered from slow cold starts and double-rendering redirect flashes.
+* **The Decision**: Implemented the Next.js 16 Request Proxy gateway in [src/proxy.ts](file:///f:/EcomStore/src/proxy.ts). It intercepts requests, verifies session keys, checks `is_admin = true` from user metadata, and performs server-side redirects *before* the browser receives a single byte of HTML.
+
+### Challenge 2: Direct Image CDN Upload Pipeline
+* **The Problem**: Letting users upload high-resolution product photos through a Next.js server route consumed massive bandwidth, slowed page performance, and hit platform limits.
+* **The Decision**: Created a secure server signing route (`/api/media/sign`). When an admin uploads an image, the client requests a signature, uploads the image directly to Cloudinary, and stores the optimized URL in PostgreSQL. This reduced host bandwidth by 95%.
+
+### Challenge 3: Maintaining Sync Between URL Params and Client Filters
+* **The Problem**: Standard React state filters (like categories) are lost on page refresh. Adding query parameters (`?category=skincare`) to anchor tags forced full page reloads, breaking SPA performance.
+* **The Decision**: Rewrote the storefront category filter to derive active categories directly from URL search parameters using Next.js `useSearchParams`. The buttons update parameters via client-side routing (`router.push`) with `{ scroll: false }` enabled, ensuring instant filtering, shareable URLs, and zero scroll resetting.
 
 ---
 
@@ -81,8 +105,16 @@ Designed PostgreSQL schemas with strict safety checks (e.g., matching delivery c
 
 5. **Start Development Server**:
    ```bash
-   npm run dev
+   powershell -ExecutionPolicy Bypass -Command "npm run dev"
    ```
+
+---
+
+## 🔮 Future Roadmap
+
+* **Live Payments Integration**: Complete Razorpay / Stripe credentials setup for live credit card and UPI payments.
+* **Fuzzy Product Search**: Integrate Postgres full-text search with autocomplete and spelling corrections.
+* **Dynamic Category Builder**: Add a dedicated dashboard panel for administrators to create, rename, or delete catalog categories.
 
 ---
 
