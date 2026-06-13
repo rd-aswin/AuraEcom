@@ -29,22 +29,25 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirect logged-in users away from the login page
+  // Redirect logged-in users away from the login page (unless they are resetting their password)
   if (pathname.startsWith('/login')) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const isReset = request.nextUrl.searchParams.get('reset') === 'true';
+    if (!isReset) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (user) {
-      let redirectPath = request.nextUrl.searchParams.get('redirect') || '/';
-      // Open redirect vulnerability protection
-      if (!redirectPath.startsWith('/') || redirectPath.startsWith('//')) {
-        redirectPath = '/';
+      if (user) {
+        let redirectPath = request.nextUrl.searchParams.get('redirect') || '/';
+        // Open redirect vulnerability protection
+        if (!redirectPath.startsWith('/') || redirectPath.startsWith('//')) {
+          redirectPath = '/';
+        }
+        const url = request.nextUrl.clone();
+        url.pathname = redirectPath;
+        url.searchParams.delete('redirect');
+        return NextResponse.redirect(url);
       }
-      const url = request.nextUrl.clone();
-      url.pathname = redirectPath;
-      url.searchParams.delete('redirect');
-      return NextResponse.redirect(url);
     }
   }
 
