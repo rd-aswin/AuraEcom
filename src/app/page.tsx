@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Leaf, ShieldCheck, Heart } from 'lucide-react';
+import { Leaf, ShieldCheck, Heart, Search, X } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
@@ -76,6 +76,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const catParam = searchParams.get('category');
+  const queryParam = searchParams.get('q') || '';
 
   useEffect(() => {
     async function fetchProducts() {
@@ -123,16 +124,40 @@ function HomeContent() {
   }, [catParam, categories]);
 
   const handleCategoryClick = (cat: string) => {
+    const params = new URLSearchParams(window.location.search);
     if (cat === 'All') {
-      router.push('/', { scroll: false });
+      params.delete('category');
     } else {
-      router.push(`/?category=${encodeURIComponent(cat)}`, { scroll: false });
+      params.set('category', cat);
     }
+    router.push(`/?${params.toString()}`, { scroll: false });
   };
 
-  const filteredProducts = activeCategory === 'All'
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  const handleSearchChange = (val: string) => {
+    const params = new URLSearchParams(window.location.search);
+    if (!val) {
+      params.delete('q');
+    } else {
+      params.set('q', val);
+    }
+    router.push(`/?${params.toString()}`, { scroll: false });
+  };
+
+  const filteredProducts = useMemo(() => {
+    let results = activeCategory === 'All'
+      ? products
+      : products.filter(p => p.category === activeCategory);
+
+    if (queryParam.trim() !== '') {
+      const query = queryParam.toLowerCase().trim();
+      results = results.filter(p => 
+        p.title.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        (p.category && p.category.toLowerCase().includes(query))
+      );
+    }
+    return results;
+  }, [products, activeCategory, queryParam]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -167,6 +192,30 @@ function HomeContent() {
               <p className={styles.sectionDesc}>
                 Explore our hand-pressed elixirs, natural clay masks, and organic wellness essentials.
               </p>
+            </div>
+
+            {/* Search Bar */}
+            <div className={styles.searchContainer}>
+              <div className={styles.searchInputWrapper}>
+                <Search className={styles.searchIcon} size={20} />
+                <input
+                  type="text"
+                  placeholder="Search botanical essentials..."
+                  value={queryParam}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className={styles.searchInput}
+                />
+                {queryParam && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('')}
+                    className={styles.clearButton}
+                    aria-label="Clear search"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Category Navigation Bar */}
@@ -208,11 +257,27 @@ function HomeContent() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : filteredProducts.length > 0 ? (
               <div className={styles.grid}>
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
+              </div>
+            ) : (
+              <div className={styles.noResults}>
+                <Search size={48} className="text-secondary" strokeWidth={1} style={{ color: 'var(--secondary)' }} />
+                <h3 className={styles.noResultsTitle}>No Products Found</h3>
+                <p className={styles.noResultsText}>
+                  We couldn&apos;t find any products matching &ldquo;{queryParam}&rdquo;. Check your spelling or try another search.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => handleSearchChange('')}
+                  style={{ borderRadius: '24px', padding: '8px 24px', fontSize: '0.88rem' }}
+                >
+                  Reset Search
+                </button>
               </div>
             )}
           </div>
