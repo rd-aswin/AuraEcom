@@ -29,6 +29,8 @@
 ## 🚀 Key Features
 
 * **🔑 Unified Auth & Route Guarding**: Authenticated sessions powered by Supabase. Custom Next.js Request Proxy checks block guest checkouts and shield admin paths.
+* **🔐 Self-Service Password Recovery**: Custom-styled 'Forgot Password' request view routing tokens through serverless session callbacks to securely reset passwords in Supabase.
+* **🔍 Real-Time Catalog Search**: Instant storefront search that filters items dynamically on keystrokes and syncs state with shareable query parameters (`/?q=searchterm`) without full page reloads.
 * **🛒 Persistent Shopping Cart**: Context-driven side drawer utilizing `localStorage` to retain items across page reloads and browser sessions.
 * **📦 Auto-Filled Checkout Form**: Shipping details automatically query and populate client metadata from active auth sessions.
 * **📈 Administrative KPI Telemetry**: Real-time sales metrics dashboard calculating total revenue, average cart values, and low stock (< 5 units) warnings.
@@ -68,6 +70,10 @@ graph TD
 ### Challenge 3: Maintaining Sync Between URL Params and Client Filters
 * **The Problem**: Standard React state filters (like categories) are lost on page refresh. Adding query parameters (`?category=skincare`) to anchor tags forced full page reloads, breaking SPA performance.
 * **The Decision**: Rewrote the storefront category filter to derive active categories directly from URL search parameters using Next.js `useSearchParams`. The buttons update parameters via client-side routing (`router.push`) with `{ scroll: false }` enabled, ensuring instant filtering, shareable URLs, and zero scroll resetting.
+
+### Challenge 4: Securing Auth Pages during Password Recovery under Request Routing Redirection
+* **The Problem**: The security proxy redirected all authenticated sessions away from `/login`. When users clicked the email password reset link, it authenticated them automatically and then redirected them to `/login?reset=true` to update their password. The proxy intercepted this and redirected them back to the homepage, blocking password updates.
+* **The Decision**: Refined the proxy routing logic in `src/proxy.ts` to inspect search query parameters. If `reset=true` is present, it bypasses the authenticated-redirect, allowing users to successfully render the password update form.
 
 ---
 
@@ -129,7 +135,7 @@ Since Vercel uses dynamic IP addresses, Brevo's default *"Blocking of unknown IP
 ## 🔮 Future Roadmap
 
 * **Live Payments Integration**: Complete Razorpay / Stripe credentials setup for live credit card and UPI payments.
-* **Fuzzy Product Search**: Integrate Postgres full-text search with autocomplete and spelling corrections.
+* **Fuzzy Product Search**: Upgrade the search feature to support fuzzy string matching and search history analytics.
 * **Dynamic Category Builder**: Add a dedicated dashboard panel for administrators to create, rename, or delete catalog categories.
 
 ---
