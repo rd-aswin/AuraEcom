@@ -1,8 +1,28 @@
 import { NextResponse } from 'next/server';
 import cloudinary from '@/lib/cloudinary';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+
+    // 1. Authenticate user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized: Authentication required' }, { status: 401 });
+    }
+
+    // 2. Authorize admin
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile || !profile.is_admin) {
+      return NextResponse.json({ error: 'Forbidden: Admin privileges required' }, { status: 403 });
+    }
+
     const body = await request.json();
     const { paramsToSign } = body;
 

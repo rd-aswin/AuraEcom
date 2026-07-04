@@ -41,12 +41,7 @@ export async function POST(request: Request) {
       .single();
 
     if (updateError) {
-      // Allow fallback warning if tables aren't fully configured
-      console.warn('Database status update skipped:', updateError.message);
-      return NextResponse.json({
-        success: true,
-        warning: 'Database bypass active (Supabase offline or tables missing).'
-      });
+      throw updateError;
     }
 
     // 3. Trigger Brevo Shipping Email on transition to 'shipped' or 'delivered'

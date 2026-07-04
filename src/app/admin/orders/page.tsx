@@ -132,6 +132,9 @@ export default function AdminOrdersPage() {
   }, [loadOrders]);
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
+    const originalOrder = orders.find(o => o.id === orderId);
+    const originalStatus = originalOrder ? originalOrder.status : 'pending';
+
     try {
       // Update locally first for fast responsive UI feedback
       setOrders(prev =>
@@ -156,7 +159,12 @@ export default function AdminOrdersPage() {
       alert(`Order status updated to: ${newStatus}`);
       loadOrders();
     } catch (err: any) {
-      console.warn('Supabase offline. Simulated status update in memory:', err);
+      console.error('Failed to update status:', err);
+      alert(err.message || 'Failed to update status on the server. Reverting status change.');
+      // Revert locally
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { ...o, status: originalStatus } : o))
+      );
     }
   };
 

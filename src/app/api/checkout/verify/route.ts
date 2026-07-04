@@ -32,70 +32,57 @@ export async function POST(request: Request) {
     }
 
     // 2. Update order status to 'paid' in Supabase and fetch items
-    let emailSent = false;
-    try {
-      const supabase = await createClient();
-      
-      const { data: orderData, error } = await supabase
-        .from('orders')
-        .update({
-          status: 'paid',
-          payment_transaction_id: paymentId,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', internalOrderId)
-        .select(`
-          id,
-          total_amount,
-          shipping_address,
-          order_items (
-            quantity,
-            price_at_purchase,
-            products (
-              title
-            )
+    const supabase = await createClient();
+    
+    const { data: orderData, error } = await supabase
+      .from('orders')
+      .update({
+        status: 'paid',
+        payment_transaction_id: paymentId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', internalOrderId)
+      .select(`
+        id,
+        total_amount,
+        shipping_address,
+        order_items (
+          quantity,
+          price_at_purchase,
+          products (
+            title
           )
-        `)
-        .single();
+        )
+      `)
+      .single();
 
-      if (error) throw error;
+    if (error) {
+      throw error;
+    }
+    
+    // 3. Dispatch the Brevo Order Confirmation email using DB records
+    if (orderData) {
+      const address = orderData.shipping_address as any;
+      const customerEmail = address?.email;
+      const customerName = address?.fullName;
       
-      // 3. Dispatch the Brevo Order Confirmation email using DB records
-      if (orderData) {
-        const address = orderData.shipping_address as any;
-        const customerEmail = address.email;
-        const customerName = address.fullName;
-        
-        // Map order items from database
-        const emailItems = (orderData.order_items || []).map((item: any) => ({
-          title: item.products?.title || 'Botanical Product',
-          quantity: item.quantity,
-          price: Number(item.price_at_purchase)
-        }));
-
-        await sendOrderEmail(
-          customerEmail,
-          customerName,
-          orderData.id,
-          Number(orderData.total_amount),
-          emailItems
-        );
-        emailSent = true;
+      if (!customerEmail || !customerName) {
+        throw new Error('Customer contact details missing from shipping records');
       }
 
-    } catch (dbErr) {
-      console.warn('Database verify-update skipped (Supabase client not configured or tables missing):', dbErr);
-    }
+      // Map order items from database
+      const emailItems = (orderData.order_items || []).map((item: any) => ({
+        title: item.products?.title || 'Botanical Product',
+        quantity: item.quantity,
+        price: Number(item.price_at_purchase)
+      }));
 
-    // 4. Fallback: If DB is offline but mock data is sent in the verification payload
-    if (!emailSent && mockCustomer && mockItems) {
-      const totalAmount = mockItems.reduce((sum: number, it: any) => sum + it.price * it.quantity, 0);
       await sendOrderEmail(
-        mockCustomer.email,
-        mockCustomer.fullName,
-        internalOrderId,
-        totalAmount,
-        mockItems
+        customerEmail,
+        customerName,
+        orderData.id,
+        Number(orderData.total_amount),
+        emailItems
       );
     }
 

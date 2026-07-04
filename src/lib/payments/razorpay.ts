@@ -35,6 +35,8 @@ export class RazorpayAdapter implements PaymentGateway {
   verifyPayment(params: PaymentVerificationParams): boolean {
     const { paymentId, orderId, signature } = params;
     
+    if (!signature) return false;
+
     // Razorpay signature verification logic:
     // HMAC-SHA256 of "order_id|payment_id" with key_secret
     const text = `${orderId}|${paymentId}`;
@@ -43,6 +45,13 @@ export class RazorpayAdapter implements PaymentGateway {
       .update(text)
       .digest('hex');
 
-    return generatedSignature === signature;
+    const generatedBuf = Buffer.from(generatedSignature, 'utf-8');
+    const inputBuf = Buffer.from(signature, 'utf-8');
+
+    if (generatedBuf.length !== inputBuf.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(generatedBuf, inputBuf);
   }
 }
