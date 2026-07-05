@@ -8,7 +8,7 @@ import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import ProductCard from '@/components/ProductCard';
 import { createClient } from '@/lib/supabase/client';
-import { Product } from '@/context/CartContext';
+import { useCart, Product } from '@/context/CartContext';
 import styles from './page.module.css';
 
 const MOCK_PRODUCTS: Product[] = [
@@ -71,12 +71,20 @@ const MOCK_PRODUCTS: Product[] = [
 const DEFAULT_CATEGORIES = ['Skincare', 'Botanical Teas', 'Wellness'];
 
 function HomeContent() {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
   const catParam = searchParams.get('category');
   const queryParam = searchParams.get('q') || '';
+
+  const handleQuickBuy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const faceOil = products.find(p => p.id === 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11') || MOCK_PRODUCTS[0];
+    addToCart(faceOil);
+    router.push('/checkout');
+  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -177,9 +185,9 @@ function HomeContent() {
               <a href="#shop" className="btn btn-primary">
                 Shop Collection
               </a>
-              <a href="#story" className="btn btn-secondary">
-                Our Story
-              </a>
+              <button onClick={handleQuickBuy} className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                Quick Buy Face Oil (₹48.00)
+              </button>
             </div>
           </div>
         </section>

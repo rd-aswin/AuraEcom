@@ -150,3 +150,21 @@
     text-align: center;
   }
 }
+
+.legalLinks {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.legalLinks a {
+  color: rgba(245, 239, 235, 0.6);
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.legalLinks a:hover {
+  color: var(--background);
+}
+

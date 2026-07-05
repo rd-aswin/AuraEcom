@@ -1,0 +1,88 @@
+.wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  flex-grow: 1;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: 2.8rem;
+  color: var(--primary);
+  margin-bottom: 24px;
+  line-height: 1.2;
+}
+
+.meta {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 48px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+
+.content {
+  color: var(--text-main);
+  line-height: 1.8;
+  font-size: 1.05rem;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.content h2 {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  color: var(--primary);
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.content p {
+  margin: 0;
+}
+
+.content ul {
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactCard {
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 32px;
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.contactField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--secondary);
+}
+
+.value {
+  font-size: 1.1rem;
+  color: var(--text-main);
+}
