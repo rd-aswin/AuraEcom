@@ -82,7 +82,7 @@ export default function Footer() {
       </div>
 
       <div className={`container ${styles.bottom}`}>
-        <p>&copy; {new Date().getFullYear()} Aura E-Store. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Aura E-Store (R.D. Aswin). All rights reserved.</p>
         <div className={styles.legalLinks}>
           <Link href="/about">About Us</Link>
           <Link href="/contact">Contact Us</Link>
